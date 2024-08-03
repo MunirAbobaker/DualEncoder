@@ -133,6 +133,8 @@ if __name__ == '__main__':
 
     for epoch in range(NUM_EPOCHS):
         running_loss = []
+        train_running_lossi = []
+        dev_running_lossi = []
         for idx, data_batch in enumerate(train_loader):
             question_tok = data_batch['question_tok'].to(device)
             answer_tok = data_batch['answer_tok'].to(device)
@@ -147,6 +149,7 @@ if __name__ == '__main__':
             if idx == 0 and epoch == 0:
                 print(f"Loss at init = {loss.item()}")
             running_loss.append(loss.log10().item())
+            train_running_lossi.append(loss.log10().item())
             if idx == n_iters-1:
                 print(f"Epoch {epoch}, loss = ", np.mean(running_loss))
             optimizer.zero_grad()
@@ -155,7 +158,6 @@ if __name__ == '__main__':
             
         # evaluate on the dev set
         with torch.no_grad():
-            dev_running_loss = []
             for idx, data_batch in enumerate(dev_loader):
                 question_tok = data_batch['question_tok'].to(device)
                 answer_tok = data_batch['answer_tok'].to(device)
@@ -164,5 +166,6 @@ if __name__ == '__main__':
                 similarity_scores = question_embed @ answer_embed.T
                 target = torch.arange(question_embed.shape[0], dtype=torch.long).to(device)
                 loss = fn_loss(similarity_scores, target)
-                dev_running_loss.append(loss.log10().item())
+                running_loss.append(loss.log10().item())
+                dev_running_lossi.append(loss.log10().item())
             print(f"Dev loss = ", np.mean(running_loss))
